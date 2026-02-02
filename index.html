@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Valentine 💘</title>
+  <title>Lucia 💘</title>
   <style>
     :root{
       --bg:#1a0b14; --card:#2b0f1f; --accent:#ff4d8d; --accent2:#ff2b55;
@@ -55,7 +55,17 @@
       background: rgba(0,0,0,.14);
       border:1px solid rgba(255,255,255,.08);
     }
+
+    .playarea{
+      position:relative;
+      height: 92px;              /* keeps layout stable on iPhone */
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
     .btnrow{display:flex; gap:12px; justify-content:center; flex-wrap:wrap}
+
     button{
       appearance:none;
       border:0;
@@ -73,7 +83,6 @@
       background: rgba(255,255,255,.08);
       color:var(--text);
       border:1px solid rgba(255,255,255,.12);
-      position:relative;
     }
     .note{
       margin:14px 0 0;
@@ -81,6 +90,16 @@
       color:rgba(255,230,240,.65);
       font-size:13px;
     }
+
+    /* Shake animation for the "No" button */
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20% { transform: translateX(-10px); }
+      40% { transform: translateX(10px); }
+      60% { transform: translateX(-8px); }
+      80% { transform: translateX(8px); }
+    }
+    .shake { animation: shake .35s ease; }
 
     /* floating hearts */
     .heart{
@@ -121,14 +140,16 @@
 <body>
   <div class="wrap">
     <div class="card" id="card">
-      <h1 class="title">Do you wanna be my valentine? 💖</h1>
+      <h1 class="title">Lucia… will you be my valentine? 💖</h1>
       <p class="sub">Choose wisely 😏</p>
 
       <div class="msg" id="msg"></div>
 
-      <div class="btnrow">
-        <button class="yes" id="yesBtn">A: Yes 💕</button>
-        <button class="no" id="noBtn">B: No 😏</button>
+      <div class="playarea" id="playarea">
+        <div class="btnrow">
+          <button class="yes" id="yesBtn">A: Yes 💕</button>
+          <button class="no" id="noBtn">B: No 😏</button>
+        </div>
       </div>
 
       <div class="note">Tip: works on phone too — just tap 😌</div>
@@ -178,7 +199,6 @@
     }
 
     function confetti(){
-      // emoji burst
       const emojis = ["💖","💕","💗","💞","❤️","✨"];
       for (let i=0;i<38;i++){
         const s = document.createElement('span');
@@ -195,62 +215,48 @@
       }
     }
 
-    function moveNoButton(){
-      // move within card bounds
-      const card = document.getElementById('card').getBoundingClientRect();
-      const btn  = noBtn.getBoundingClientRect();
-
-      const padding = 10;
-      const maxX = card.width - btn.width - padding*2;
-      const maxY = card.height - btn.height - padding*2;
-
-      const x = padding + Math.random()*Math.max(0, maxX);
-      const y = padding + Math.random()*Math.max(0, maxY);
-
-      // translate relative to its original position
-      noBtn.style.position = 'absolute';
-      noBtn.style.left = x + 'px';
-      noBtn.style.top  = y + 'px';
+    function shakeNo(){
+      noBtn.classList.remove('shake');
+      // reflow to restart animation
+      void noBtn.offsetWidth;
+      noBtn.classList.add('shake');
     }
 
     // initial
     setMsg("");
 
     yesBtn.addEventListener('click', ()=>{
-      setMsg("I always knew you’d say yes ❤️");
+      setMsg("Good. I knew you’d pick the right answer ❤️");
       noBtn.disabled = true;
-      noBtn.style.opacity = 0.55;
-      yesBtn.style.filter = "brightness(1.05)";
+      noBtn.style.opacity = 0.35;
       confetti();
       startHearts();
-      setTimeout(confetti, 120);
-      setTimeout(confetti, 260);
+      setTimeout(confetti, 140);
+      setTimeout(confetti, 280);
     });
 
     noBtn.addEventListener('click', ()=>{
       noCount++;
+      shakeNo();
+
       if (noCount === 1){
-        setMsg("Lets try that again. 😏");
-        moveNoButton();
+        setMsg("Nope. Try again. 😏");
       } else if (noCount === 2){
-        setMsg("Alright, enough teasing. 😌");
-        moveNoButton();
-      } else if (noCount >= 3){
-        setMsg("No more saying no for you. 😉");
-        noBtn.disabled = true;
-        noBtn.style.opacity = 0.55;
-        // pulse the yes button a bit
+        setMsg("Mhm… still no. 😌");
+      } else {
+        setMsg("Okay. That button is gone now. 😉");
+        noBtn.style.opacity = 0;
+        noBtn.style.pointerEvents = "none";
+        setTimeout(()=> noBtn.remove(), 350);
         yesBtn.animate([
           { transform: "scale(1)" },
-          { transform: "scale(1.05)" },
+          { transform: "scale(1.06)" },
           { transform: "scale(1)" }
         ], { duration: 520, iterations: 2 });
       }
     });
 
-    // subtle background hearts
     startHearts();
-    // pause hearts if tab hidden (battery)
     document.addEventListener('visibilitychange', ()=>{
       if (document.hidden) stopHearts(); else startHearts();
     });
